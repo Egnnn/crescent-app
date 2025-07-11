@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crescent</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="theme-color" content="#6c3b9d" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f2f0;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+    h1 {
+      color: #6c3b9d;
+      font-size: 24px;
+    }
+    #wheel {
+      margin: 20px auto;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 10px solid #6c3b9d;
+      background: conic-gradient(
+        #e0d5eb 0deg 45deg,
+        #d1c4e9 45deg 90deg,
+        #b39ddb 90deg 135deg,
+        #9575cd 135deg 180deg,
+        #7e57c2 180deg 225deg,
+        #673ab7 225deg 270deg,
+        #5e35b1 270deg 315deg,
+        #512da8 315deg 360deg
+      );
+      animation: none;
+      position: relative;
+    }
+    #wheel::after {
+      content: "";
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 15px solid #6c3b9d;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(1080deg); }
+    }
+    #activityDisplay {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+    button {
+      background-color: #6c3b9d;
+      color: white;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 6px;
+    }
+    button:hover {
+      background-color: #562e7e;
+    }
+    #newActivity {
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+      max-width: 300px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌙 Crescent</h1>
+  <p>Her hafta bir yeni aktivite seç!</p>
+  <div id="wheel"></div>
+  <div id="activityDisplay">⏳ Bekleniyor...</div>
+  <button onclick="selectActivity()">🎲 Aktivite Seç</button>
+  <button onclick="resetActivities()">🔁 Belleği Sıfırla</button>
+  <br/><br/>
+  <input type="text" id="newActivity" placeholder="Yeni aktivite girin..." />
+  <button onclick="addNewActivity()">➕ Ekle</button>
+  <ul id="activityList"></ul>
+  <audio id="spinSound" src="https://www.soundjay.com/mechanical/sounds/spin-gear-1.mp3"></audio>
+
+  <script>
+    const defaultActivities = [
+      "Boyama yapmak", "Hamurla oynamak", "Sulu boya çalışması", "Mozaik pano yapmak",
+      "Seramik", "Opera", "Klasik müzik dinletisi", "Sihirbazlık gösterisi",
+      "Katil Kim - Trendyol", "Monopoly", "Tabu", "Jenga", "Origami",
+      "Puzzle", "Ortak hikaye yazma", "Kör tadım oyunu", "Smoothie yapma",
+      "Kamp gecesi", "Polaroid çekimi", "Büyükada gezisi", "Atatürk Arboretumu",
+      "Belgrad koşusu", "Maçka parkı koşusu", "Florya deniz", "Sarıyer sahil",
+      "Emirgan Korusu", "Orman parkuru", "Laser tag", "Şiir dinletisi",
+      "Mum yapımı", "Takı tasarımı", "Tiyatro gecesi"
+    ];
+
+    function getAllActivities() {
+      return JSON.parse(localStorage.getItem("allActivities") || JSON.stringify(defaultActivities));
+    }
+
+    function saveAllActivities(activities) {
+      localStorage.setItem("allActivities", JSON.stringify(activities));
+    }
+
+    function getUsedActivities() {
+      return JSON.parse(localStorage.getItem("usedActivities") || "[]");
+    }
+
+    function saveUsedActivity(activity) {
+      const used = getUsedActivities();
+      used.push(activity);
+      localStorage.setItem("usedActivities", JSON.stringify(used));
+    }
+
+    function resetActivities() {
+      localStorage.removeItem("usedActivities");
+      document.getElementById("activityDisplay").textContent = "Bellek sıfırlandı. Yeni aktivite seç!";
+    }
+
+    function selectActivity() {
+      const used = getUsedActivities();
+      const all = getAllActivities();
+      const remaining = all.filter(act => !used.includes(act));
+      if (remaining.length === 0) {
+        document.getElementById("activityDisplay").textContent = "🎉 Tüm aktiviteler yapıldı!";
+        return;
+      }
+      const wheel = document.getElementById("wheel");
+      wheel.style.animation = "spin 2s ease-in-out";
+      document.getElementById("spinSound").play();
+      setTimeout(() => {
+        wheel.style.animation = "none";
+        const selected = remaining[Math.floor(Math.random() * remaining.length)];
+        saveUsedActivity(selected);
+        document.getElementById("activityDisplay").textContent = `📌 Bu haftanın aktivitesi: ${selected}`;
+      }, 2000);
+    }
+
+    function addNewActivity() {
+      const input = document.getElementById("newActivity");
+      const value = input.value.trim();
+      if (!value) return alert("Lütfen bir aktivite girin.");
+      const activities = getAllActivities();
+      if (activities.includes(value)) return alert("Bu aktivite zaten var.");
+      activities.push(value);
+      saveAllActivities(activities);
+      input.value = "";
+    }
+  </script>
+</body>
+</html>
